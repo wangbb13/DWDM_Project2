@@ -1,0 +1,113 @@
+# -*- coding: utf-8 -*-
+import math
+import random
+from pca import decompose
+from read_data import DataFrame
+
+
+class Vector(object):
+    """docstring for Vector"""
+    @staticmethod
+    def norm(vec):
+        return math.sqrt(sum([_ ** 2 for _ in vec]))
+
+    @staticmethod
+    def dot(vec_a, vec_b):
+        return sum([vec_a[_] * vec_b[_] for _ in range(len(vec_a))])
+
+    @staticmethod
+    def add(vec_a, vec_b):
+        return [vec_a[_] + vec_b[_] for _ in range(len(vec_a))]
+
+    @staticmethod
+    def minus(vec_a, vec_b):
+        return [vec_a[_] - vec_b[_] for _ in range(len(vec_a))]
+
+
+class Euclidean(object):
+    """docstring for EuclideanD"""
+    @staticmethod
+    def distance(vec_a, vec_b):
+        return Vector.norm(Vector.minus(vec_a, vec_b))
+
+
+class Cosine(object):
+    """docstring for Cosine"""
+    @staticmethod
+    def distance(vec_a, vec_b):
+        return Vector.dot(vec_a, vec_b) / (Vector.norm(vec_a) * Vector.norm(vec_b))
+
+
+class KMeans(object):
+    """docstring for KMeans"""
+    def __init__(self, data, distance, k, iters=100):
+        self.data = data
+        self.distance = distance
+        self.k = k
+        self.data_size = len(data)
+        self.cols = data.cols()
+        self.iterations = iters
+
+    def run(self):
+        # initial part
+        self.centroids = [self.gen() for _ in range(self.k)]
+        self.groups = [-1 for _ in range(self.data_size)]
+        self.flag = True
+        # assignment
+        def assignment():
+            self.flag = True
+            for i in range(self.data_size):
+                assign = -1
+                minval = 0xffffffff
+                for j in range(self.k):
+                    d = self.distance(self.centroids[j], self.data[i])
+                    if d < minval:
+                        minval = d
+                        assign = j
+                if self.groups[i] != assign:
+                    self.flag = False
+                self.groups[i] = assign
+        # update centroids
+        def update():
+            numbers = [0 for _ in range(self.k)]
+            sums = [[0 for _ in range(self.cols)] for _ in range(self.k)]
+            for i in range(self.data_size):
+                numbers[self.groups[i]] += 1
+                sums[self.groups[i]] = Vector.add(sums[self.groups[i]], self.data[i])
+            self.centroids = [[sums[_][j] / numbers[_] for j in range(self.cols)] 
+                         if numbers[_] > 0 else self.centroids[_]
+                         for _ in range(self.k)]
+        # square error of all clusters
+        def sse():
+            ans = 0
+            for i in range(self.data_size):
+                ans += self.distance(self.data[i], self.centroids[self.groups[i]])
+            return ans
+        # iterate until convergence
+        i = 0
+        while i < self.iterations:
+            i += 1
+            print('Iteration', i, end=' ')
+            assignment()
+            update()
+            print('SSE =', sse())
+            if self.flag:
+                break
+        # return result
+        return self.groups
+
+    def gen(self):
+        l, r = 0, self.data_size - 1
+        return [self.data.col(_)[random.randint(l, r)] for _ in range(self.cols)]
+
+
+class KMeansPCA(object):
+    """docstring for KMeansPCA"""
+    def __init__(self, data, distance, k, n, iters=100):
+        _data_ = DataFrame(decompose(data.get_data(), n))
+        self.kmeans = KMeans(_data_, distance, k, iters)
+        self.dim = n
+
+    def run(self):
+        print('KMeans With PCA dimension =', self.dim)
+        return self.kmeans.run()

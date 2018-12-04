@@ -18,7 +18,7 @@ class DataFrame(object):
         return self.data[index]
 
     def cols(self):
-        return _col_
+        return self._col_
 
     def col(self, index):
         return self.column[index]

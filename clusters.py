@@ -3,6 +3,9 @@ import math
 import random
 from pca import decompose
 from read_data import DataFrame
+import matplotlib.pyplot as plt
+import heapq
+import numpy as np
 
 
 class Vector(object):
@@ -111,3 +114,35 @@ class KMeansPCA(object):
     def run(self):
         print('KMeans With PCA dimension =', self.dim)
         return self.kmeans.run()
+
+
+class DBScan(object):
+    """docstring for DBScan"""
+    def __init__(self, data, distance, max_k=10):
+        self.data = data
+        self.distance = distance
+        self.size = len(data)
+        self.cols = data.cols()
+        self.maxk = max_k + 1
+
+    def pre_processing(self):
+        """
+        Find eps and minpts By Ploting
+        """
+        mat = [[0 for _ in range(self.size)] for _ in range(self.size)]
+        for _ in range(self.size):
+            for __ in range(_+1, self.size):
+                mat[_][__] = mat[__][_] = self.distance(self.data[_], self.data[__])
+        sorted_mat = [sorted(heapq.nlargest(self.maxk, mat[_])) for _ in range(self.size)]
+        for k in range(self.maxk, 1, -1):
+            dy = sorted([sorted_mat[_][self.maxk-k] for _ in range(self.size)])
+            ay = np.array(dy)
+            ax = np.array([_ for _ in range(self.size)])
+            plt.plot(ax, ay)
+            plt.show()
+            l = int(input('left  ='))
+            r = int(input('right ='))
+            print(dy[l:r])
+
+    def run(self):
+        pass

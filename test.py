@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from read_data import Data
-from clusters import Euclidean, Cosine, KMeans, KMeansPCA
+from clusters import Euclidean, Cosine, KMeans, KMeansPCA, DBScan
 from evaluate import Purity, FScore
 import matplotlib.pyplot as plt
 import numpy as np
@@ -104,12 +104,21 @@ def test_case_5():
     plt.show()
 
 
+def test_case_6():
+    filename = 'Frogs_MFCCs.csv'
+    frog = Data(filename)
+    d = Euclidean.distance
+    dbscan = DBScan(frog, d)
+    dbscan.pre_processing()
+
+
 def main():
     # test_case_1()
     # test_case_2()
     # test_case_3()
     # test_case_4()
-    test_case_5()
+    # test_case_5()
+    test_case_6()
 
 
 if __name__ == '__main__':

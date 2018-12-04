@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import math
 import random
 from pca import decompose
@@ -6,6 +7,7 @@ from read_data import DataFrame
 import matplotlib.pyplot as plt
 import heapq
 import numpy as np
+from collections import deque
 
 
 class Vector(object):
@@ -52,6 +54,15 @@ class KMeans(object):
         self.iterations = iters
 
     def run(self):
+        """
+        :notation: 0,1,2..: label
+        :process:
+        repeat:
+            assignment
+            update
+        until convergence
+        :return: clustering label list
+        """
         # initial part
         self.centroids = [self.gen() for _ in range(self.k)]
         self.groups = [-1 for _ in range(self.data_size)]
@@ -122,27 +133,111 @@ class DBScan(object):
         self.data = data
         self.distance = distance
         self.size = len(data)
-        self.cols = data.cols()
-        self.maxk = max_k + 1
+        self.maxk = max_k
+        self.eps = 2.25
+        self.minpts = 5
 
-    def pre_processing(self):
+    def __pre_processing__(self):
         """
         Find eps and minpts By Ploting
         """
+        topk_d_file = 'topkd.txt'
         mat = [[0 for _ in range(self.size)] for _ in range(self.size)]
-        for _ in range(self.size):
-            for __ in range(_+1, self.size):
-                mat[_][__] = mat[__][_] = self.distance(self.data[_], self.data[__])
-        sorted_mat = [sorted(heapq.nlargest(self.maxk, mat[_])) for _ in range(self.size)]
-        for k in range(self.maxk, 1, -1):
-            dy = sorted([sorted_mat[_][self.maxk-k] for _ in range(self.size)])
-            ay = np.array(dy)
-            ax = np.array([_ for _ in range(self.size)])
-            plt.plot(ax, ay)
-            plt.show()
-            l = int(input('left  ='))
-            r = int(input('right ='))
-            print(dy[l:r])
+        if os.path.isfile(topk_d_file):
+            with open(topk_d_file, 'r') as fin:
+                sorted_mat = eval(fin.read().strip())
+        else:
+            for _ in range(self.size):
+                for __ in range(_+1, self.size):
+                    mat[_][__] = mat[__][_] = self.distance(self.data[_], self.data[__])
+            sorted_mat = [sorted(heapq.nlargest(self.maxk, mat[_])) for _ in range(self.size)]
+            with open(topk_d_file, 'w') as fout:
+                fout.write(str(sorted_mat))
+        def f1():
+            for k in range(self.maxk, 1, -1):
+                dy = sorted([sorted_mat[_][self.maxk-k] for _ in range(self.size)])
+                ay = np.array(dy)
+                ax = np.array([_ for _ in range(self.size)])
+                plt.plot(ax, ay)
+                plt.show()
+                l = int(input('left  ='))
+                r = int(input('right ='))
+                print(dy[l:r])
+        def f2():
+            print('Total Points =', self.size)
+            while True:
+                try:
+                    threshold = float(input('threshold = '))
+                except Exception:
+                    break
+                for k in range(self.maxk, 1, -1):
+                    dy = [sorted_mat[_][self.maxk-k] for _ in range(self.size)]
+                    nu = sum([1 for _ in dy if _ <= threshold])
+                    print('MinPTs =', k, 'Points =', nu)
+        # f1()
+        f2() # select eps=2.25 minpts=5
 
     def run(self):
-        pass
+        """
+        :notation: 0: unvisited; 1,2,..: label; size+1: noise
+        :process: directly (don't want to write, actually..)
+        :return: clustering label list
+        """
+        # calc distance & neighbors
+        neighbors = [[] for _ in range(self.size)]
+        for _ in range(self.size):
+            for __ in range(_+1, self.size):
+                if self.distance(self.data[_], self.data[__]) <= self.eps:
+                    neighbors[_].append(__)
+                    neighbors[__].append(_)
+        print('calc neighbors done.')
+        # main part
+        groups = [0 for _ in range(self.size)]
+        noise_q = deque()
+        label = 1
+        noise = self.size + 1
+        for _ in range(self.size):
+            print(_)
+            if groups[_] == 0:
+                if len(neighbors[_]) < self.minpts:
+                    flag = True
+                    for p in neighbors[_]:
+                        if len(neighbors[p]) >= self.minpts:
+                            flag = False
+                            break
+                    if flag:
+                        groups[_] = noise
+                        noise_q.append(_)
+                        print('noise point', _)
+                        continue
+                myq = deque([_])
+                while len(myq):
+                    p = myq.pop()
+                    print(p, end=' ')
+                    groups[p] = label
+                    for np in neighbors[p]:
+                        if groups[np] == 0:
+                            myq.append(np)
+                label += 1
+        print('label = 1 ...', label)
+        # tackle noise points
+        print('noise points =', len(noise_q))
+        while len(noise_q):
+            rm = []
+            for _ in noise_q:
+                minval, select = 0xffffffff, noise
+                for __ in neighbors[_]:
+                    d = self.distance(self.data[_], self.data[__])
+                    if d < minval and groups[__] < noise:
+                        minval, select = d, groups[__]
+                if select < noise:
+                    groups[_] = select
+                    rm.append(_)
+            if len(rm):
+                for _ in rm:
+                    noise_q.remove(_)
+            else:
+                break
+        print('noise points=', len(noise_q))
+        # return the result
+        return groups

@@ -109,7 +109,18 @@ def test_case_6():
     frog = Data(filename)
     d = Euclidean.distance
     dbscan = DBScan(frog, d)
-    dbscan.pre_processing()
+    dbscan.__pre_processing__()
+
+
+def test_case_7():
+    filename = 'Frogs_MFCCs.csv'
+    frog = Data(filename)
+    d = Euclidean.distance
+    dbscan = DBScan(frog, d)
+    classes = frog.get_gt()
+    cluster = dbscan.run()
+    print('purity =', Purity(cluster, classes, k_c, k_gt))
+    print('f-score =', FScore(cluster, classes))
 
 
 def main():
@@ -118,7 +129,8 @@ def main():
     # test_case_3()
     # test_case_4()
     # test_case_5()
-    test_case_6()
+    # test_case_6()
+    test_case_7()
 
 
 if __name__ == '__main__':

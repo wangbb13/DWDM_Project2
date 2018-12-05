@@ -135,7 +135,7 @@ class DBScan(object):
         self.size = len(data)
         self.maxk = max_k
         self.eps = 0.95
-        self.minpts = 500
+        self.minpts = 100
 
     def __pre_processing__(self):
         """
@@ -179,7 +179,7 @@ class DBScan(object):
 
     def run(self):
         """
-        :notation: 0: unvisited; 1,2,..: label; size+1: noise
+        :notation: -1: unvisited; 0,1,2,..: label; size+1: noise
         :process: directly (don't want to write, actually..)
         :return: clustering label list
         """
@@ -192,13 +192,14 @@ class DBScan(object):
                     neighbors[__].append(_)
         print('calc neighbors done.')
         # main part
-        groups = [0 for _ in range(self.size)]
-        noise_q = deque()
-        label = 1
+        label = 0
+        unvisit = -1
         noise = self.size + 1
+        groups = [unvisit for _ in range(self.size)]
+        noise_q = deque()
         for _ in range(self.size):
             print(_, end='  ')
-            if groups[_] == 0:
+            if groups[_] == unvisit:
                 if len(neighbors[_]) < self.minpts:
                     flag = True
                     for p in neighbors[_]:
@@ -218,7 +219,7 @@ class DBScan(object):
                     for pt in pre:
                         groups[pt] = label
                         for np in neighbors[pt]:
-                            if groups[np] == 0:
+                            if groups[np] == unvisit:
                                 cur.add(np)
                     __s = pre
                     pre = cur
@@ -246,3 +247,15 @@ class DBScan(object):
         print('noise points=', len(noise_q))
         # return the result
         return groups, label
+
+
+class DBScanPCA(object):
+    """docstring for DBScanPCA"""
+    def __init__(self, data, distance, n, max_k=10):
+        _data_ = DataFrame(decompose(data.get_data(), n))
+        self.dbscan = DBScan(_data_, distance, max_k)
+        self.dim = n
+
+    def run(self):
+        print('DBScan with PCA dimension =', self.dim)
+        return self.dbscan.run()

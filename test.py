@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from read_data import Data
-from clusters import Euclidean, Cosine, KMeans, KMeansPCA, DBScan
+from clusters import Euclidean, Cosine, KMeans, KMeansPCA, DBScan, DBScanPCA
 from evaluate import Purity, FScore
 import matplotlib.pyplot as plt
 import numpy as np
@@ -120,7 +120,20 @@ def test_case_7():
     classes = frog.get_gt()
     k_gt = 4
     cluster, k_c = dbscan.run()
-    print('purity =', Purity(cluster, classes, k_c, k_gt), True)
+    print('purity =', Purity(cluster, classes, k_c, k_gt))
+    print('f-score =', FScore(cluster, classes))
+
+
+def test_case_8():
+    filename = 'Frogs_MFCCs.csv'
+    frog = Data(filename)
+    d = Euclidean.distance
+    n = 9
+    dbscan_pca = DBScanPCA(frog, d, n)
+    classes = frog.get_gt()
+    k_gt = 4
+    cluster, k_c = dbscan_pca.run()
+    print('purity =', Purity(cluster, classes, k_c, k_gt))
     print('f-score =', FScore(cluster, classes))
 
 
@@ -131,7 +144,8 @@ def main():
     # test_case_4()
     # test_case_5()
     # test_case_6()
-    test_case_7()
+    # test_case_7()
+    test_case_8()
 
 
 if __name__ == '__main__':

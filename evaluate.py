@@ -1,10 +1,16 @@
 # -*- coding: utf-8 -*-
 
-def Purity(vec_c, vec_gt, k_c, k_gt):
+def Purity(vec_c, vec_gt, k_c, k_gt, from_one=False):
     n = len(vec_c)
     mat = [[0 for _ in range(k_gt)] for _ in range(k_c)]
-    for i in range(n):
-        mat[vec_c[i]][vec_gt[i]] += 1
+    if from_one:
+        for i in range(n):
+            if vec_c[i] > k_c:
+                continue
+            mat[vec_c[i]-1][vec_gt[i]] += 1
+    else:
+        for i in range(n):
+            mat[vec_c[i]][vec_gt[i]] += 1
     return sum([max(_) for _ in mat]) / n
 
 

@@ -118,8 +118,9 @@ def test_case_7():
     d = Euclidean.distance
     dbscan = DBScan(frog, d)
     classes = frog.get_gt()
-    cluster = dbscan.run()
-    print('purity =', Purity(cluster, classes, k_c, k_gt))
+    k_gt = 4
+    cluster, k_c = dbscan.run()
+    print('purity =', Purity(cluster, classes, k_c, k_gt), True)
     print('f-score =', FScore(cluster, classes))
 
 

@@ -134,8 +134,8 @@ class DBScan(object):
         self.distance = distance
         self.size = len(data)
         self.maxk = max_k
-        self.eps = 2.25
-        self.minpts = 5
+        self.eps = 0.95
+        self.minpts = 500
 
     def __pre_processing__(self):
         """
@@ -197,7 +197,7 @@ class DBScan(object):
         label = 1
         noise = self.size + 1
         for _ in range(self.size):
-            print(_)
+            print(_, end='  ')
             if groups[_] == 0:
                 if len(neighbors[_]) < self.minpts:
                     flag = True
@@ -210,14 +210,19 @@ class DBScan(object):
                         noise_q.append(_)
                         print('noise point', _)
                         continue
-                myq = deque([_])
-                while len(myq):
-                    p = myq.pop()
-                    print(p, end=' ')
-                    groups[p] = label
-                    for np in neighbors[p]:
-                        if groups[np] == 0:
-                            myq.append(np)
+                pre = set([_])
+                cur = set()
+                while len(pre):
+                    cur.clear()
+                    print('Pre Set Size =', len(pre))
+                    for pt in pre:
+                        groups[pt] = label
+                        for np in neighbors[pt]:
+                            if groups[np] == 0:
+                                cur.add(np)
+                    __s = pre
+                    pre = cur
+                    cur = __s
                 label += 1
         print('label = 1 ...', label)
         # tackle noise points
@@ -240,4 +245,4 @@ class DBScan(object):
                 break
         print('noise points=', len(noise_q))
         # return the result
-        return groups
+        return groups, label

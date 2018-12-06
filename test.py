@@ -129,12 +129,36 @@ def test_case_8():
     frog = Data(filename)
     d = Euclidean.distance
     n = 9
-    dbscan_pca = DBScanPCA(frog, d, n)
     classes = frog.get_gt()
     k_gt = 4
-    cluster, k_c = dbscan_pca.run()
-    print('purity =', Purity(cluster, classes, k_c, k_gt))
-    print('f-score =', FScore(cluster, classes))
+    pl = []
+    fl = []
+    for mp in range(4, 20, 2):
+        dbscan_pca = DBScanPCA(frog, d, n, eps=1.75, minpts=mp)
+        cluster, k_c = dbscan_pca.run()
+        p = Purity(cluster, classes, k_c, k_gt)
+        f = FScore(cluster, classes)
+        print('purity =', p)
+        print('f-score =', f)
+        pl.append(p)
+        fl.append(f)
+    ax = np.array([_ for _ in range(4, 20, 2)])
+    ap = np.array(pl)
+    af = np.array(fl)
+    plt.plot(ax, ap, 'g-', marker='o', label='purity', linewidth=2)
+    plt.plot(ax, af, 'r-', marker='*', label='f-score', linewidth=2)
+    plt.xticks(ax)
+    plt.legend(loc=0)
+    plt.show()
+
+
+def test_case_9():
+    filename = 'Frogs_MFCCs.csv'
+    frog = Data(filename)
+    d = Euclidean.distance
+    n = 9
+    dbscan_pca = DBScanPCA(frog, d, n)
+    dbscan_pca.__pre_processing__()
 
 
 def main():
@@ -146,6 +170,7 @@ def main():
     # test_case_6()
     # test_case_7()
     test_case_8()
+    # test_case_9()
 
 
 if __name__ == '__main__':

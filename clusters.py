@@ -129,19 +129,20 @@ class KMeansPCA(object):
 
 class DBScan(object):
     """docstring for DBScan"""
-    def __init__(self, data, distance, max_k=10):
+    def __init__(self, data, distance, max_k=200, step=10, eps=1.75, minpts=10):
         self.data = data
         self.distance = distance
         self.size = len(data)
         self.maxk = max_k
-        self.eps = 2.25
-        self.minpts = 150
+        self.step = step
+        self.eps = eps
+        self.minpts = minpts
 
     def __pre_processing__(self):
         """
         Find eps and minpts By Ploting
         """
-        topk_d_file = 'topkd.txt'
+        topk_d_file = 'top%s.txt' % (self.maxk)
         mat = [[0 for _ in range(self.size)] for _ in range(self.size)]
         if os.path.isfile(topk_d_file):
             with open(topk_d_file, 'r') as fin:
@@ -150,32 +151,34 @@ class DBScan(object):
             for _ in range(self.size):
                 for __ in range(_+1, self.size):
                     mat[_][__] = mat[__][_] = self.distance(self.data[_], self.data[__])
-            sorted_mat = [sorted(heapq.nlargest(self.maxk, mat[_])) for _ in range(self.size)]
+            idl = [_ for _ in range(self.size)]
+            sorted_mat = [heapq.nsmallest(self.maxk+1, list(zip(mat[_], idl))) for _ in range(self.size)]
             with open(topk_d_file, 'w') as fout:
                 fout.write(str(sorted_mat))
         def f1():
-            for k in range(self.maxk, 1, -1):
-                dy = sorted([sorted_mat[_][self.maxk-k] for _ in range(self.size)])
+            ax = np.array([_ for _ in range(self.size)])
+            for k in range(self.maxk, 0, -self.step):
+                print(k, 'th nearest')
+                dy = sorted([sorted_mat[_][k][0] for _ in range(self.size)])
                 ay = np.array(dy)
-                ax = np.array([_ for _ in range(self.size)])
                 plt.plot(ax, ay)
                 plt.show()
-                l = int(input('left  ='))
-                r = int(input('right ='))
-                print(dy[l:r])
+                ch = input('Continue?(enter/sth)>')
+                if len(ch):
+                    break
         def f2():
-            print('Total Points =', self.size)
+            print('total points =', self.size)
             while True:
                 try:
                     threshold = float(input('threshold = '))
                 except Exception:
                     break
-                for k in range(self.maxk, 1, -1):
-                    dy = [sorted_mat[_][self.maxk-k] for _ in range(self.size)]
+                for k in range(self.maxk, 0, -self.step):
+                    dy = [sorted_mat[_][k][0] for _ in range(self.size)]
                     nu = sum([1 for _ in dy if _ <= threshold])
-                    print('MinPTs =', k, 'Points =', nu)
-        # f1()
-        f2() # select eps=2.25 minpts=5
+                    print('minpts =', k, 'Points =', nu)
+        f1()
+        f2() # select eps=1.75 minpts=10
 
     def run(self):
         """
@@ -192,6 +195,7 @@ class DBScan(object):
                     neighbors[__].append(_)
         print('calc neighbors done.')
         # main part
+        print('eps =', self.eps, 'minpts =', self.minpts)
         label = 0
         unvisit = -1
         noise = self.size + 1
@@ -199,7 +203,6 @@ class DBScan(object):
         noise_q = deque()
         for _ in range(self.size):
             if groups[_] == unvisit:
-                print('processing unvisited point ', _)
                 if len(neighbors[_]) < self.minpts:
                     flag = True
                     for p in neighbors[_]:
@@ -209,13 +212,11 @@ class DBScan(object):
                     if flag:
                         groups[_] = noise
                         noise_q.append(_)
-                        print('noise point', _)
                         continue
                 pre = set([_])
                 cur = set()
                 while len(pre):
                     cur.clear()
-                    print('Pre Set Size =', len(pre))
                     for pt in pre:
                         groups[pt] = label
                         for np in neighbors[pt]:
@@ -251,10 +252,14 @@ class DBScan(object):
 
 class DBScanPCA(object):
     """docstring for DBScanPCA"""
-    def __init__(self, data, distance, n, max_k=10):
+    def __init__(self, data, distance, n, max_k=200, step=10, eps=1.75, minpts=10):
         _data_ = DataFrame(decompose(data.get_data(), n))
-        self.dbscan = DBScan(_data_, distance, max_k)
+        self.dbscan = DBScan(_data_, distance, max_k, step, eps, minpts)
         self.dim = n
+
+    def __pre_processing__(self):
+        print('DBScan pre-processing with PCA dimension =', self.dim)
+        self.dbscan.__pre_processing__()
 
     def run(self):
         print('DBScan with PCA dimension =', self.dim)

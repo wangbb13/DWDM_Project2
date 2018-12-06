@@ -134,8 +134,8 @@ class DBScan(object):
         self.distance = distance
         self.size = len(data)
         self.maxk = max_k
-        self.eps = 0.95
-        self.minpts = 100
+        self.eps = 2.25
+        self.minpts = 150
 
     def __pre_processing__(self):
         """
@@ -198,8 +198,8 @@ class DBScan(object):
         groups = [unvisit for _ in range(self.size)]
         noise_q = deque()
         for _ in range(self.size):
-            print(_, end='  ')
             if groups[_] == unvisit:
+                print('processing unvisited point ', _)
                 if len(neighbors[_]) < self.minpts:
                     flag = True
                     for p in neighbors[_]:
@@ -225,7 +225,7 @@ class DBScan(object):
                     pre = cur
                     cur = __s
                 label += 1
-        print('label = 1 ...', label)
+        print('label = [ 0,', label, ')')
         # tackle noise points
         print('noise points =', len(noise_q))
         while len(noise_q):

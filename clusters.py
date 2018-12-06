@@ -1,46 +1,11 @@
 # -*- coding: utf-8 -*-
 import os
-import math
 import random
-from pca import decompose
-from read_data import DataFrame
-import matplotlib.pyplot as plt
 import heapq
 import numpy as np
 from collections import deque
-
-
-class Vector(object):
-    """docstring for Vector"""
-    @staticmethod
-    def norm(vec):
-        return math.sqrt(sum([_ ** 2 for _ in vec]))
-
-    @staticmethod
-    def dot(vec_a, vec_b):
-        return sum([vec_a[_] * vec_b[_] for _ in range(len(vec_a))])
-
-    @staticmethod
-    def add(vec_a, vec_b):
-        return [vec_a[_] + vec_b[_] for _ in range(len(vec_a))]
-
-    @staticmethod
-    def minus(vec_a, vec_b):
-        return [vec_a[_] - vec_b[_] for _ in range(len(vec_a))]
-
-
-class Euclidean(object):
-    """docstring for EuclideanD"""
-    @staticmethod
-    def distance(vec_a, vec_b):
-        return Vector.norm(Vector.minus(vec_a, vec_b))
-
-
-class Cosine(object):
-    """docstring for Cosine"""
-    @staticmethod
-    def distance(vec_a, vec_b):
-        return Vector.dot(vec_a, vec_b) / (Vector.norm(vec_a) * Vector.norm(vec_b))
+import matplotlib.pyplot as plt
+from kits import DataFrame, Vector, decompose
 
 
 class KMeans(object):

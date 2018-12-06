@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+
 def Purity(vec_c, vec_gt, k_c, k_gt):
     n = len(vec_c)
     mat = [[0 for _ in range(k_gt)] for _ in range(k_c)]

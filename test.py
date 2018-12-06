@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from read_data import Data
-from clusters import Euclidean, Cosine, KMeans, KMeansPCA, DBScan, DBScanPCA
+from kits import Data, Euclidean, Cosine
+from clusters import KMeans, KMeansPCA, DBScan, DBScanPCA
 from evaluate import Purity, FScore
 import matplotlib.pyplot as plt
 import numpy as np

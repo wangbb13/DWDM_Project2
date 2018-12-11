@@ -2,6 +2,7 @@
 import os
 import csv
 import math
+import numbers
 from sklearn.decomposition import PCA
 
 
@@ -85,18 +86,26 @@ class Vector(object):
     """docstring for Vector"""
     @staticmethod
     def norm(vec):
+        if isinstance(vec, numbers.Number):
+            return math.abs(vec)
         return math.sqrt(sum([_ ** 2 for _ in vec]))
 
     @staticmethod
     def dot(vec_a, vec_b):
+        if isinstance(vec_a, numbers.Number) and isinstance(vec_b, numbers.Number):
+            return vec_a * vec_b
         return sum([vec_a[_] * vec_b[_] for _ in range(len(vec_a))])
 
     @staticmethod
     def add(vec_a, vec_b):
+        if isinstance(vec_a, numbers.Number) and isinstance(vec_b, numbers.Number):
+            return vec_a + vec_b
         return [vec_a[_] + vec_b[_] for _ in range(len(vec_a))]
 
     @staticmethod
     def minus(vec_a, vec_b):
+        if isinstance(vec_a, numbers.Number) and isinstance(vec_b, numbers.Number):
+            return vec_a - vec_b
         return [vec_a[_] - vec_b[_] for _ in range(len(vec_a))]
 
 

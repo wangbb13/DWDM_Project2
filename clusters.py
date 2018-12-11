@@ -29,6 +29,7 @@ class KMeans(object):
         :return: clustering label list
         """
         # initial part
+        print('k =', self.k)
         self.centroids = [self.gen() for _ in range(self.k)]
         self.groups = [-1 for _ in range(self.data_size)]
         self.flag = True
@@ -77,6 +78,7 @@ class KMeans(object):
 
     def gen(self):
         l, r = 0, self.data_size - 1
+        # return self.data[random.randint(l, r)]
         return [self.data.col(_)[random.randint(l, r)] for _ in range(self.cols)]
 
 
@@ -94,7 +96,7 @@ class KMeansPCA(object):
 
 class DBScan(object):
     """docstring for DBScan"""
-    def __init__(self, data, distance, max_k=200, step=10, eps=1.75, minpts=10):
+    def __init__(self, data, distance, max_k=200, step=10, eps=1.75, minpts=4):
         self.data = data
         self.distance = distance
         self.size = len(data)
@@ -217,7 +219,7 @@ class DBScan(object):
 
 class DBScanPCA(object):
     """docstring for DBScanPCA"""
-    def __init__(self, data, distance, n, max_k=200, step=10, eps=1.75, minpts=10):
+    def __init__(self, data, distance, n, max_k=200, step=10, eps=1.75, minpts=4):
         _data_ = DataFrame(decompose(data.get_data(), n))
         self.dbscan = DBScan(_data_, distance, max_k, step, eps, minpts)
         self.dim = n
